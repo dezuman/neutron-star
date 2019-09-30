@@ -1,0 +1,10 @@
+[target.i686-neutron]
+rustflags = [
+  "-C", "link-arg=-Tlink.x",
+  "-C", "relocation-model=static"
+]
+[target.i486-neutron]
+rustflags = [
+  "-C", "link-arg=-Tlink.x",
+  "-C", "relocation-model=static"
+]
