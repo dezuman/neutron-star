@@ -3,31 +3,49 @@ extern crate neutron_star_rt;
 extern crate neutron_star_constants;
 
 use core::fmt;
+use alloc::string::*;
 use neutron_star_rt::*;
 use neutron_star_constants::*;
 use crate::logging::*;
-pub struct Printer{}
+use crate::syscalls::*;
+#[derive(Default)]
+pub struct Printer{
+    part_count: u8
+}
 
 impl Printer{
     fn print_string(&self, s: &str) {
         log_info(s);
     }
+    fn flush(&mut self){
+        log_info_from_sccs(self.part_count);
+        self.part_count = 0;
+    }
 }
 
 impl fmt::Write for Printer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.print_string(s);
+        let _ = push_sccs(s.as_bytes());
+        if self.part_count == 255{
+            self.flush();
+        }
+        self.part_count += 1;
         Ok(())
     }
 }
+impl Drop for Printer {
+    fn drop(&mut self){
+        if self.part_count > 0{
+            self.flush();
+        }
+    }
+}
 
-/// Like the `print!` macro in the standard library, but prints to the VGA text buffer.
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::testing::_print(format_args!($($arg)*)));
 }
 
-/// Like the `println!` macro in the standard library, but prints to the VGA text buffer.
 #[macro_export]
 macro_rules! println {
     () => ($crate::print!("\n"));
@@ -37,6 +55,7 @@ macro_rules! println {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    let mut p = Printer{};
+    let mut p = Printer::default();
     p.write_fmt(args).unwrap();
+    p.flush();
 }
