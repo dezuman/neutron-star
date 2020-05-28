@@ -5,15 +5,12 @@ extern crate neutron_star_constants;
 use core::fmt;
 use neutron_star_rt::*;
 use neutron_star_constants::*;
-
+use crate::logging::*;
 pub struct Printer{}
 
 impl Printer{
     fn print_string(&self, s: &str) {
-        unsafe{
-            let buffer = s.as_ptr();
-            __testbench_syscall_short(TestbenchSyscalls::Print as u32, buffer as u32, s.len() as u32, 0);
-        }
+        log_info(s);
     }
 }
 
@@ -37,7 +34,6 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
-/// Prints the given formatted string to the VGA text buffer through the global `WRITER` instance.
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
