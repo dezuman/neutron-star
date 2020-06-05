@@ -10,18 +10,21 @@ extern crate neutron_star_rt;
 extern crate alloc;
 //extern crate alloc;
 pub mod syscalls;
+#[macro_use]
 pub mod testing;
 pub mod logging;
+pub mod storage;
 use core::alloc::Layout;
 
-//nothing needed in this yet
 #[no_mangle]
-pub extern "C" fn __init_neutron() {}
+pub extern "C" fn __init_neutron() {
+    unsafe{ init_heap(); }
+}
 use linked_list_allocator::LockedHeap;
 
-pub fn init_heap() {
-    let heap_start = 0x80020000;
-    let heap_end = 0x8002FFFF;
+pub unsafe fn init_heap() {
+    let heap_start = 0x80030000;
+    let heap_end = 0x8003F000;
     let heap_size = heap_end - heap_start;
     unsafe {
         ALLOCATOR.lock().init(heap_start, heap_size);
@@ -34,6 +37,7 @@ static ALLOCATOR: LockedHeap = LockedHeap::empty();
 // define what happens in an Out Of Memory (OOM) condition
 #[alloc_error_handler]
 fn alloc_error(_layout: Layout) -> ! {
+    println!("CONTRACT PANIC! -- Allocation Error");
     unsafe{
         neutron_star_rt::__revert_execution(0);
     }

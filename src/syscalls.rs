@@ -12,6 +12,10 @@ use neutron_star_constants::*;
 use core::mem::transmute;
 use alloc::vec::*;
 
+#[macro_use]
+use crate::*;
+use crate::logging::*;
+
 #[derive(core::fmt::Debug)]
 pub enum SystemError{
     Generic(u32),
@@ -47,6 +51,9 @@ pub fn pop_sccs_fixed(buffer: &mut [u8]) -> Result<u32, SystemError>{
 pub fn pop_sccs() -> Result<Vec<u8>, SystemError>{
     unsafe{
         let actual_size = __peek_sccs(0 as *mut u8, 0, 0);
+        if actual_size > 0x8000_0000{
+            return Err(SystemError::Generic(actual_size as u32))
+        }
         let mut data = vec![];
         data.resize(actual_size, 0);
         let actual_size = __pop_sccs(data.as_mut_ptr(), actual_size) as u32;
