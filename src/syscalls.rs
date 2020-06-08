@@ -12,9 +12,6 @@ use neutron_star_constants::*;
 use core::mem::transmute;
 use alloc::vec::*;
 
-#[macro_use]
-use crate::*;
-use crate::logging::*;
 
 #[derive(core::fmt::Debug)]
 pub enum SystemError{

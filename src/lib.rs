@@ -4,7 +4,7 @@
 #![feature(alloc_error_handler)]
 #![no_std]
 
-extern crate linked_list_allocator;
+extern crate linked_list_allocator_no_lock;
 extern crate neutron_star_rt;
 #[macro_use]
 extern crate alloc;
@@ -18,21 +18,23 @@ use core::alloc::Layout;
 
 #[no_mangle]
 pub extern "C" fn __init_neutron() {
-    unsafe{ init_heap(); }
+    unsafe{
+        init_heap();
+    }
 }
-use linked_list_allocator::LockedHeap;
+use linked_list_allocator_no_lock::UnlockedHeap;
 
 pub unsafe fn init_heap() {
-    let heap_start = 0x80030000;
-    let heap_end = 0x8003F000;
+    let heap_start:usize = 0x8003_0000;
+    let heap_end:usize = 0x8003_F000;
     let heap_size = heap_end - heap_start;
     unsafe {
-        ALLOCATOR.lock().init(heap_start, heap_size);
+        (*ALLOCATOR.get()).init(heap_start, heap_size);
     }
 }
 
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+static ALLOCATOR: UnlockedHeap = UnlockedHeap::empty();
 
 // define what happens in an Out Of Memory (OOM) condition
 #[alloc_error_handler]
