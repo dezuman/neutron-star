@@ -126,7 +126,7 @@ pub fn push_costack_address(value: &NeutronAddress){
 }
 
 /// Pushes a u64 value to the stack. 
-pub fn push_sccs_u64(value: u64){
+pub fn push_costack_u64(value: u64){
     const SIZE:usize = 8;
     let t = unsafe{
         transmute::<u64, [u8; SIZE]>(value)
@@ -134,7 +134,7 @@ pub fn push_sccs_u64(value: u64){
     push_costack(&t);
 }
 /// Pushes a u32 value to the stack. 
-pub fn push_sccs_u32(value: u32){
+pub fn push_costack_u32(value: u32){
     const SIZE:usize = 4;
     let t = unsafe{
         transmute::<u32, [u8; SIZE]>(value)
@@ -143,7 +143,7 @@ pub fn push_sccs_u32(value: u32){
 }
 
 /// Pushes a u64 value to the stack. 
-pub fn push_sccs_u16(value: u16){
+pub fn push_costack_u16(value: u16){
     const SIZE:usize = 2;
     let t = unsafe{
         transmute::<u16, [u8; SIZE]>(value)
@@ -152,7 +152,7 @@ pub fn push_sccs_u16(value: u16){
 }
 
 /// Pushes a u64 value to the stack. 
-pub fn push_sccs_u8(value: u8){
+pub fn push_costack_u8(value: u8){
     const SIZE:usize = 1;
     let t = unsafe{
         transmute::<u8, [u8; SIZE]>(value)
