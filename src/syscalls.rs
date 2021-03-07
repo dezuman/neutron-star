@@ -165,9 +165,9 @@ pub fn get_self_address() -> NeutronAddress{
     return NeutronAddress::default();
 }
 
-pub fn _system_call(feature: u32, function: u32) -> Result<u32, SystemError>{
+pub fn _system_call(element: u32, function: u32) -> Result<u32, SystemError>{
     unsafe{
-        let result = __system_call(feature, function);
+        let result = __system_call(element, function);
         if result >= 0x8000_0000{
             Err(SystemError::Generic(result))
         }else{
