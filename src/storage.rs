@@ -1,5 +1,4 @@
 use crate::syscalls::*;
-use alloc::vec::*;
 /*
 ## Global Storage
 
@@ -22,20 +21,21 @@ pub enum GlobalStorageFunctions{
 }
 
 pub fn store_state(key: &[u8], value: &[u8]) -> Result<(), SystemError>{
-    push_sccs(value)?;
-    push_sccs(key)?;
+    push_costack(value);
+    push_costack(key);
     _system_call(GLOBAL_STORAGE_FEATURE, GlobalStorageFunctions::StoreState as u32)?;
     Ok(())
 }
 
 pub fn load_state_fixed(key: &[u8], value: &mut [u8]) -> Result<usize, SystemError>{
-    push_sccs(key)?;
+    push_costack(key);
     _system_call(GLOBAL_STORAGE_FEATURE, GlobalStorageFunctions::StoreState as u32)?;
-    Ok(pop_sccs_fixed(value)? as usize)
+    Ok(pop_costack_fixed(value)? as usize)
 }
-
+/*
 pub fn load_state(key: &[u8]) -> Result<Vec<u8>, SystemError>{
-    push_sccs(key)?;
+    push_costack(key);
     _system_call(GLOBAL_STORAGE_FEATURE, GlobalStorageFunctions::StoreState as u32)?;
     pop_sccs()
 }
+*/

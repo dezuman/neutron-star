@@ -8,17 +8,12 @@ harness = false
 
 
 [dependencies]
-linked_list_allocator_no_lock = { path = "../linked-list-allocator-no-lock" }
-neutron-star-rt = { git = "https://github.com/qtumproject/neutron-star-rt" }
-#neutron-star-rt = { path = "../qtum-neutron-rt" }
+neutron-star-rt = { path = "../neutron-star-rt" }
+panic-halt = "0.2.0"
+neutron-star-constants = { path = "../neutron-star-constants" }
 
 [dependencies.num-traits]
 version = "0.2"
-default-features = false
-
-[dependencies.neutron-star-constants]
-#path = "../../neutronstar-constants"
-git = "https://github.com/qtumproject/neutron-star-constants"
 default-features = false
 
 [profile.dev]
@@ -29,13 +24,3 @@ panic = "abort"
 opt-level = 'z' 
 lto = true
 codegen-units = 1
-
-[profile.test]
-panic = "abort"
-
-[profile.bench]
-panic = "abort"
-
-[features]
-default = [ "nightly" ]
-nightly = []

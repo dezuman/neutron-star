@@ -23,7 +23,6 @@ Note in neutron-star, log_info is used by default for println!
 const LOGGING_FEATURE: u32 = 2;
 
 enum LoggingFunctions{
-    Available = 0, //reserved??
     LogDebug = 1,
     LogInfo,
     LogWarning,
@@ -32,40 +31,40 @@ enum LoggingFunctions{
 
 
 pub fn log_debug(msg: &str){
-    push_sccs(msg.as_bytes()).unwrap();
-    push_sccs(&[1]).unwrap();
+    push_costack(msg.as_bytes());
+    push_costack(&[1]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogDebug as u32).unwrap();
 }
 pub fn log_info(msg: &str){
-    push_sccs(msg.as_bytes()).unwrap();
-    push_sccs(&[1]).unwrap();
+    push_costack(msg.as_bytes());
+    push_costack(&[1]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogInfo as u32).unwrap();
 }
 pub fn log_warning(msg: &str){
-    push_sccs(msg.as_bytes()).unwrap();
-    push_sccs(&[1]).unwrap();
+    push_costack(msg.as_bytes());
+    push_costack(&[1]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogWarning as u32).unwrap();
 }
 pub fn log_error(msg: &str){
-    push_sccs(msg.as_bytes()).unwrap();
-    push_sccs(&[1]).unwrap();
+    push_costack(msg.as_bytes());
+    push_costack(&[1]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogError as u32).unwrap();
 }
 
-pub fn log_debug_from_sccs(count: u8){
-    push_sccs(&[count]).unwrap();
+pub fn log_debug_from_costack(count: u8){
+    push_costack(&[count]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogDebug as u32).unwrap();
 }
-pub fn log_info_from_sccs(count: u8){
-    push_sccs(&[count]).unwrap();
+pub fn log_info_from_costack(count: u8){
+    push_costack(&[count]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogInfo as u32).unwrap();
 }
-pub fn log_warning_from_sccs(count: u8){
-    push_sccs(&[count]).unwrap();
+pub fn log_warning_from_costack(count: u8){
+    push_costack(&[count]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogWarning as u32).unwrap();
 }
-pub fn log_error_from_sccs(count: u8){
-    push_sccs(&[count]).unwrap();
+pub fn log_error_from_costack(count: u8){
+    push_costack(&[count]);
     _system_call(LOGGING_FEATURE, LoggingFunctions::LogError as u32).unwrap();
 }
 

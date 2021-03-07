@@ -3,9 +3,6 @@ extern crate neutron_star_rt;
 extern crate neutron_star_constants;
 
 use core::fmt;
-use alloc::string::*;
-use neutron_star_rt::*;
-use neutron_star_constants::*;
 use crate::logging::*;
 use crate::syscalls::*;
 #[derive(Default)]
@@ -14,18 +11,20 @@ pub struct Printer{
 }
 
 impl Printer{
+    /*
     fn print_string(&self, s: &str) {
         log_info(s);
     }
+    */
     fn flush(&mut self){
-        log_info_from_sccs(self.part_count);
+        log_info_from_costack(self.part_count);
         self.part_count = 0;
     }
 }
 
 impl fmt::Write for Printer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let _ = push_sccs(s.as_bytes());
+        push_costack(s.as_bytes());
         if self.part_count == 255{
             self.flush();
         }
