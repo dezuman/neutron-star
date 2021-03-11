@@ -5,10 +5,10 @@
 //! instead of taking mutable pointers for integers
 
 extern crate neutron_star_rt;
-extern crate neutron_star_constants;
+extern crate neutron_common;
 
 use neutron_star_rt::*;
-use neutron_star_constants::*;
+use neutron_common::*;
 use core::mem::transmute;
 
 

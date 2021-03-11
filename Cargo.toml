@@ -10,7 +10,7 @@ harness = false
 [dependencies]
 neutron-star-rt = { path = "../neutron-star-rt" }
 panic-halt = "0.2.0"
-neutron-star-constants = { path = "../neutron-star-constants" }
+neutron-common = { path = "../neutron-common" }
 
 [dependencies.num-traits]
 version = "0.2"

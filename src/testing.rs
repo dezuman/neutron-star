@@ -1,6 +1,6 @@
 
 extern crate neutron_star_rt;
-extern crate neutron_star_constants;
+extern crate neutron_common;
 
 use core::fmt;
 use crate::logging::*;
