@@ -4,6 +4,9 @@
 //! These functions only do the basic methods of abstraction, such as returning results and pairs
 //! instead of taking mutable pointers for integers
 
+// Comap macros using costack macros doesn't compile without nested unsafe blocks, so block warning
+#![allow(unused_unsafe)]
+
 extern crate neutron_common;
 extern crate neutron_star_rt;
 
@@ -170,6 +173,78 @@ pub fn push_costack_i8(value: i8) {
 pub fn push_costack_address(value: &NeutronAddress) {
     push_costack_typed!(*value, NeutronAddress);
 }
+
+
+// All these are 1 byte headers -> only top byte is used, as following: 
+// Bits 7-6 are 0   -> 1 byte header
+// Bit 5 is 0       -> numeric type
+// Bit 4 is 0       -> not hex/bignum display
+// Bit 3 is 0       -> not array
+// Bits 2-0 determine the actual type
+const ABI_VALUE_U8: u32       = 0b00000000 << 24;
+const ABI_VALUE_I8: u32       = 0b00000100 << 24;
+const ABI_VALUE_U16: u32      = 0b00000010 << 24;
+const ABI_VALUE_I16: u32      = 0b00000110 << 24;
+const ABI_VALUE_U32: u32      = 0b00000001 << 24;
+const ABI_VALUE_I32: u32      = 0b00000101 << 24;
+const ABI_VALUE_U64: u32      = 0b00000011 << 24;
+const ABI_VALUE_I64: u32      = 0b00000111 << 24;
+
+// OR above type value with this to set byte indicating array value
+//const ABI_ARRAY_BIT: u32    = 0b00001000 << 24;
+
+
+macro_rules! write_comap_typed_with_abi {
+    ($KEY:ident, $VALUE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
+        unsafe { 
+            push_costack($KEY.as_bytes());
+            push_costack_typed!($VALUE, $TYPE);
+            __push_comap($ABI_VALUE);
+        }
+    }};
+}
+
+/// Write a u64 comap value
+pub fn write_comap_u64(key: &str, value: u64) {
+    write_comap_typed_with_abi!(key, value, u64, ABI_VALUE_U64)
+}
+
+/// Write a u32 comap value
+pub fn write_comap_u32(key: &str, value: u32) {
+    write_comap_typed_with_abi!(key, value, u32, ABI_VALUE_U32)
+}
+
+/// Write a u16 comap value
+pub fn write_comap_u16(key: &str, value: u16) {
+    write_comap_typed_with_abi!(key, value, u16, ABI_VALUE_U16)
+}
+
+/// Write a u8 comap value
+pub fn write_comap_u8(key: &str, value: u8) {
+    write_comap_typed_with_abi!(key, value, u8, ABI_VALUE_U8)
+}
+
+/// Write a i64 comap value
+pub fn write_comap_i64(key: &str, value: i64) {
+    write_comap_typed_with_abi!(key, value, i64, ABI_VALUE_I64)
+}
+
+/// Write a i32 comap value
+pub fn write_comap_i32(key: &str, value: i32) {
+    write_comap_typed_with_abi!(key, value, i32, ABI_VALUE_I32)
+}
+
+/// Write a i16 comap value
+pub fn write_comap_i16(key: &str, value: i16) {
+    write_comap_typed_with_abi!(key, value, i16, ABI_VALUE_I16)
+}
+
+/// Write a i8 comap value
+pub fn write_comap_i8(key: &str, value: i8) {
+    write_comap_typed_with_abi!(key, value, i8, ABI_VALUE_I8)
+}
+
+
 
 pub fn get_self_address() -> NeutronAddress {
     //TODO
