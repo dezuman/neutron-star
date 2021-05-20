@@ -244,7 +244,80 @@ pub fn write_comap_i8(key: &str, value: i8) {
     write_comap_typed_with_abi!(key, value, i8, ABI_VALUE_I8)
 }
 
+macro_rules! read_comap_typed_with_abi {
+    ($KEY:ident, $TYPE:tt) => {{
+        unsafe {
+            push_costack($KEY.as_bytes());
+            const BEGIN: usize = 0;
+            const SIZE: usize = core::mem::size_of::<$TYPE>();
+            __peek_result_comap(BEGIN, SIZE)
+        }
+    }};
+}
 
+/// Attempt to read a u64 comap value
+pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u64) {
+        ABI_VALUE_U64 => pop_costack_u64(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u32 comap value
+pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u32) {
+        ABI_VALUE_U32 => pop_costack_u32(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u16 comap value
+pub fn read_comap_u16(key: &str) -> Result<u16, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u16) {
+        ABI_VALUE_U16 => pop_costack_u16(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u8 comap value
+pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u8) {
+        ABI_VALUE_U8 => pop_costack_u8(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i64 comap value
+pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i64) {
+        ABI_VALUE_I64 => pop_costack_i64(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i32 comap value
+pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i32) {
+        ABI_VALUE_I32 => pop_costack_i32(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i16 comap value
+pub fn read_comap_i16(key: &str) -> Result<i16, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i16) {
+        ABI_VALUE_I16 => pop_costack_i16(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i8 comap value
+pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i8) {
+        ABI_VALUE_I8 => pop_costack_i8(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
 
 pub fn get_self_address() -> NeutronAddress {
     //TODO
