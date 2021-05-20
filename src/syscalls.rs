@@ -174,29 +174,29 @@ pub fn push_costack_address(value: &NeutronAddress) {
     push_costack_typed!(*value, NeutronAddress);
 }
 
-
-// All these are 1 byte headers -> only top byte is used, as following: 
+// All these are 1 byte headers -> only top byte is used, as following:
 // Bits 7-6 are 0   -> 1 byte header
 // Bit 5 is 0       -> numeric type
 // Bit 4 is 0       -> not hex/bignum display
 // Bit 3 is 0       -> not array
 // Bits 2-0 determine the actual type
-const ABI_VALUE_U8: u32       = 0b00000000 << 24;
-const ABI_VALUE_I8: u32       = 0b00000100 << 24;
-const ABI_VALUE_U16: u32      = 0b00000010 << 24;
-const ABI_VALUE_I16: u32      = 0b00000110 << 24;
-const ABI_VALUE_U32: u32      = 0b00000001 << 24;
-const ABI_VALUE_I32: u32      = 0b00000101 << 24;
-const ABI_VALUE_U64: u32      = 0b00000011 << 24;
-const ABI_VALUE_I64: u32      = 0b00000111 << 24;
+
+// TODO: Move to a more unified ABI helper library???
+pub const ABI_VALUE_U8: u32 = 0b00000000;
+pub const ABI_VALUE_I8: u32 = 0b00000100;
+pub const ABI_VALUE_U16: u32 = 0b00000010;
+pub const ABI_VALUE_I16: u32 = 0b00000110;
+pub const ABI_VALUE_U32: u32 = 0b00000001;
+pub const ABI_VALUE_I32: u32 = 0b00000101;
+pub const ABI_VALUE_U64: u32 = 0b00000011;
+pub const ABI_VALUE_I64: u32 = 0b00000111;
 
 // OR above type value with this to set byte indicating array value
 //const ABI_ARRAY_BIT: u32    = 0b00001000 << 24;
 
-
 macro_rules! write_comap_typed_with_abi {
     ($KEY:ident, $VALUE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
-        unsafe { 
+        unsafe {
             push_costack($KEY.as_bytes());
             push_costack_typed!($VALUE, $TYPE);
             __push_comap($ABI_VALUE);
