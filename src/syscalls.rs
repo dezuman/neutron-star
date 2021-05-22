@@ -11,6 +11,8 @@ extern crate neutron_common;
 extern crate neutron_star_rt;
 
 use core::mem::transmute;
+use core::slice;
+
 use neutron_common::*;
 use neutron_star_rt::*;
 
@@ -123,6 +125,82 @@ pub fn pop_costack_address() -> Result<NeutronAddress, RecoverableError> {
     pop_costack_typed!(NeutronAddress)
 }
 
+// pop_costack_fixed_array_XXX(array slice)
+
+// TODO: This macro can probably be refactored to be less messy
+// It basically casts a slice of a numeric array to a byte slice, then pops a costack value into it.
+macro_rules! pop_costack_fixed_array_typed {
+    ($SLICE:ident, $TYPE:tt) => {{
+        const SIZE: usize = core::mem::size_of::<$TYPE>();
+
+        let pointer = &mut$SLICE[0] as *mut $TYPE as *mut u8;
+        let byte_slice = unsafe { slice::from_raw_parts_mut(pointer, $SLICE.len() * SIZE) };
+
+        let result = match pop_costack_fixed(byte_slice) {
+            Ok(v) => v,
+            Err(_e) => return Err(RecoverableError::ItemDoesntExist),
+        };
+
+        // For these functions we only allow the exact expected byte count
+        if result > ($SLICE.len() * SIZE) as u32 {
+            return Err(RecoverableError::StackItemTooLarge);
+        } else if result < ($SLICE.len() * SIZE) as u32 {
+            return Err(RecoverableError::StackItemTooSmall);
+        }
+
+        return Ok(());
+    }};
+}
+
+/// Pops a fixed size u8 array from the stack.
+pub fn pop_costack_fixed_array_u8(slice: &mut [u8]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, u8)
+}
+
+/// Pops a fixed size u16 array from the stack.
+pub fn pop_costack_fixed_array_u16(slice: &mut [u16]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, u16)
+}
+
+/// Pops a fixed size u32 array from the stack.
+pub fn pop_costack_fixed_array_u32(slice: &mut [u32]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, u32)
+}
+
+/// Pops a fixed size u64 array from the stack.
+pub fn pop_costack_fixed_array_u64(slice: &mut [u64]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, u64)
+}
+
+/// Pops a fixed size i8 array from the stack.
+pub fn pop_costack_fixed_array_i8(slice: &mut [i8]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, i8)
+}
+
+/// Pops a fixed size i16 array from the stack.
+pub fn pop_costack_fixed_array_i16(slice: &mut [i16]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, i16)
+}
+
+/// Pops a fixed size i32 array from the stack.
+pub fn pop_costack_fixed_array_i32(slice: &mut [i32]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, i32)
+}
+
+/// Pops a fixed size i64 array from the stack.
+pub fn pop_costack_fixed_array_i64(slice: &mut [i64]) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, i64)
+}
+
+/// Pops a fixed size NeutronAddress array from the stack.
+pub fn pop_costack_fixed_array_address(
+    slice: &mut [NeutronAddress],
+) -> Result<(), RecoverableError> {
+    pop_costack_fixed_array_typed!(slice, NeutronAddress)
+}
+
+// push_costack_XXX(value)
+
 macro_rules! push_costack_typed {
     ($VALUE:ident, $TYPE:tt) => {{
         const SIZE: usize = core::mem::size_of::<$TYPE>();
@@ -180,6 +258,64 @@ pub fn push_costack_i64(value: i64) {
 /// Pushes an exact NeutronAddress to the stack.
 pub fn push_costack_address(value: &NeutronAddress) {
     push_costack_typed!(*value, NeutronAddress);
+}
+
+// push_costack_array_XXX(array slice)
+
+macro_rules! push_costack_array_typed {
+    ($SLICE:ident, $TYPE:tt) => {{
+        const SIZE: usize = core::mem::size_of::<$TYPE>();
+
+        let pointer = &$SLICE[0] as *const $TYPE as *const u8;
+        let byte_slice = unsafe { slice::from_raw_parts(pointer, $SLICE.len() * SIZE) };
+
+        push_costack(byte_slice);
+    }};
+}
+
+/// Pushes an u8 array to the stack.
+pub fn push_costack_array_u8(value: &[u8]) {
+    push_costack(value); // No need for the macro since the slice is already byte sized
+}
+
+/// Pushes an u16 array to the stack.
+pub fn push_costack_array_u16(value: &[u16]) {
+    push_costack_array_typed!(value, u16);
+}
+
+/// Pushes an u32 array to the stack.
+pub fn push_costack_array_u32(value: &[u32]) {
+    push_costack_array_typed!(value, u32);
+}
+
+/// Pushes an u64 array to the stack.
+pub fn push_costack_array_u64(value: &[u64]) {
+    push_costack_array_typed!(value, u64);
+}
+
+/// Pushes an i8 array to the stack.
+pub fn push_costack_array_i8(value: &[i8]) {
+    push_costack_array_typed!(value, i8);
+}
+
+/// Pushes an i16 array to the stack.
+pub fn push_costack_array_i16(value: &[i16]) {
+    push_costack_array_typed!(value, i16);
+}
+
+/// Pushes an i32 array to the stack.
+pub fn push_costack_array_i32(value: &[i32]) {
+    push_costack_array_typed!(value, i32);
+}
+
+/// Pushes an i64 array to the stack.
+pub fn push_costack_array_i64(value: &[i64]) {
+    push_costack_array_typed!(value, i64);
+}
+
+/// Pushes a NeutronAddress array to the stack.
+pub fn push_costack_array_address(value: &[NeutronAddress]) {
+    push_costack_array_typed!(value, NeutronAddress);
 }
 
 /*****************************************
