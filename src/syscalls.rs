@@ -406,14 +406,28 @@ pub fn write_comap_address(key: &str, value: NeutronAddress) {
 // write_comap_array_XXX(key, array slice)
 
 macro_rules! write_comap_array_typed_with_abi {
-    ($KEY:ident, $VALUE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
+    ($KEY:ident, $SLICE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
         unsafe {
-            crate::println!("boo!");
             push_costack($KEY.as_bytes());
-            push_costack_array_typed!($VALUE, $TYPE);
+            push_costack_array_typed!($SLICE, $TYPE);
             __push_comap($ABI_VALUE);
         }
     }};
+}
+
+/// Write a u8 comap array
+pub fn write_comap_array_u8(key: &str, value_slice: &[u8]) {
+    write_comap_array_typed_with_abi!(key, value_slice, u8, ABI_VALUE_U8 + ABI_ARRAY_BIT)
+}
+
+/// Write a u16 comap array
+pub fn write_comap_array_u16(key: &str, value_slice: &[u16]) {
+    write_comap_array_typed_with_abi!(key, value_slice, u16, ABI_VALUE_U16 + ABI_ARRAY_BIT)
+}
+
+/// Write a u32 comap array
+pub fn write_comap_array_u32(key: &str, value_slice: &[u32]) {
+    write_comap_array_typed_with_abi!(key, value_slice, u32, ABI_VALUE_U32 + ABI_ARRAY_BIT)
 }
 
 /// Write a u64 comap array
@@ -421,10 +435,39 @@ pub fn write_comap_array_u64(key: &str, value_slice: &[u64]) {
     write_comap_array_typed_with_abi!(key, value_slice, u64, ABI_VALUE_U64 + ABI_ARRAY_BIT)
 }
 
+/// Write a i8 comap array
+pub fn write_comap_array_i8(key: &str, value_slice: &[i8]) {
+    write_comap_array_typed_with_abi!(key, value_slice, i8, ABI_VALUE_I8 + ABI_ARRAY_BIT)
+}
+
+/// Write a i16 comap array
+pub fn write_comap_array_i16(key: &str, value_slice: &[i16]) {
+    write_comap_array_typed_with_abi!(key, value_slice, i16, ABI_VALUE_I16 + ABI_ARRAY_BIT)
+}
+
+/// Write a i32 comap array
+pub fn write_comap_array_i32(key: &str, value_slice: &[i32]) {
+    write_comap_array_typed_with_abi!(key, value_slice, i32, ABI_VALUE_I32 + ABI_ARRAY_BIT)
+}
+
+/// Write a i64 comap array
+pub fn write_comap_array_i64(key: &str, value_slice: &[i64]) {
+    write_comap_array_typed_with_abi!(key, value_slice, i64, ABI_VALUE_I64 + ABI_ARRAY_BIT)
+}
+
 // read_comap_XXX(key)
 
+// These two variants are identical save for reading either the input or result comap
 macro_rules! read_comap_typed_with_abi {
-    ($KEY:ident, $TYPE:tt) => {{
+    ($KEY:ident, $TYPE:tt, "input_map") => {{
+        unsafe {
+            push_costack($KEY.as_bytes());
+            const BEGIN: usize = 0;
+            const SIZE: usize = core::mem::size_of::<$TYPE>();
+            __peek_comap(BEGIN, SIZE)
+        }
+    }};
+    ($KEY:ident, $TYPE:tt, "result_map") => {{
         unsafe {
             push_costack($KEY.as_bytes());
             const BEGIN: usize = 0;
@@ -434,66 +477,347 @@ macro_rules! read_comap_typed_with_abi {
     }};
 }
 
-/// Attempt to read a u8 comap value
+/// Attempt to read a u8 input comap value
 pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u8) {
+    match read_comap_typed_with_abi!(key, u8, "input_map") {
         ABI_VALUE_U8 => pop_costack_u8(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a u16 comap value
+/// Attempt to read a u16 input comap value
 pub fn read_comap_u16(key: &str) -> Result<u16, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u16) {
+    match read_comap_typed_with_abi!(key, u16, "input_map") {
         ABI_VALUE_U16 => pop_costack_u16(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a u32 comap value
+/// Attempt to read a u32 input comap value
 pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u32) {
+    match read_comap_typed_with_abi!(key, u32, "input_map") {
         ABI_VALUE_U32 => pop_costack_u32(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a u64 comap value
+/// Attempt to read a u64 input comap value
 pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u64) {
+    match read_comap_typed_with_abi!(key, u64, "input_map") {
         ABI_VALUE_U64 => pop_costack_u64(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i8 comap value
+/// Attempt to read a i8 input comap value
 pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i8) {
+    match read_comap_typed_with_abi!(key, i8, "input_map") {
         ABI_VALUE_I8 => pop_costack_i8(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i16 comap value
+/// Attempt to read a i16 input comap value
 pub fn read_comap_i16(key: &str) -> Result<i16, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i16) {
+    match read_comap_typed_with_abi!(key, i16, "input_map") {
         ABI_VALUE_I16 => pop_costack_i16(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i32 comap value
+/// Attempt to read a i32 input comap value
 pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i32) {
+    match read_comap_typed_with_abi!(key, i32, "input_map") {
         ABI_VALUE_I32 => pop_costack_i32(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i64 comap value
+/// Attempt to read a i64 input comap value
 pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i64) {
+    match read_comap_typed_with_abi!(key, i64, "input_map") {
         ABI_VALUE_I64 => pop_costack_i64(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+// read_result_comap_XXX
+
+/// Attempt to read a u8 result comap value
+pub fn read_result_comap_u8(key: &str) -> Result<u8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u8, "result_map") {
+        ABI_VALUE_U8 => pop_costack_u8(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u16 result comap value
+pub fn read_result_comap_u16(key: &str) -> Result<u16, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u16, "result_map") {
+        ABI_VALUE_U16 => pop_costack_u16(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u32 result comap value
+pub fn read_result_comap_u32(key: &str) -> Result<u32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u32, "result_map") {
+        ABI_VALUE_U32 => pop_costack_u32(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u64 result comap value
+pub fn read_result_comap_u64(key: &str) -> Result<u64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u64, "result_map") {
+        ABI_VALUE_U64 => pop_costack_u64(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i8 result comap value
+pub fn read_result_comap_i8(key: &str) -> Result<i8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i8, "result_map") {
+        ABI_VALUE_I8 => pop_costack_i8(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i16 result comap value
+pub fn read_result_comap_i16(key: &str) -> Result<i16, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i16, "result_map") {
+        ABI_VALUE_I16 => pop_costack_i16(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i32 result comap value
+pub fn read_result_comap_i32(key: &str) -> Result<i32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i32, "result_map") {
+        ABI_VALUE_I32 => pop_costack_i32(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i64 result comap value
+pub fn read_result_comap_i64(key: &str) -> Result<i64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i64, "result_map") {
+        ABI_VALUE_I64 => pop_costack_i64(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+// read_comap_fixed_array_XXX(key, array slice)
+
+macro_rules! read_comap_fixed_array_typed_with_abi {
+    ($KEY:ident, $SLICE_LENGTH:expr, $TYPE:tt, "input_map") => {{
+        unsafe {
+            push_costack($KEY.as_bytes());
+            const BEGIN: usize = 0;
+            const SIZE: usize = core::mem::size_of::<$TYPE>();
+            __peek_comap(BEGIN, $SLICE_LENGTH * SIZE)
+        }
+    }};
+    ($KEY:ident, $SLICE_LENGTH:expr, $TYPE:tt, "result_map") => {{
+        unsafe {
+            push_costack($KEY.as_bytes());
+            const BEGIN: usize = 0;
+            const SIZE: usize = core::mem::size_of::<$TYPE>();
+            __peek_result_comap(BEGIN, $SLICE_LENGTH * SIZE)
+        }
+    }};
+}
+
+/// Attempt to read a u8 input comap array
+pub fn read_comap_fixed_array_u8(
+    key: &str,
+    return_slice: &mut [u8],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U8 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u8, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_u8(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u16 input comap array
+pub fn read_comap_fixed_array_u16(
+    key: &str,
+    return_slice: &mut [u16],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U16 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u16, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_u16(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u32 input comap array
+pub fn read_comap_fixed_array_u32(
+    key: &str,
+    return_slice: &mut [u32],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U32 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u32, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_u32(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u64 input comap array
+pub fn read_comap_fixed_array_u64(
+    key: &str,
+    return_slice: &mut [u64],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U64 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u64, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_u64(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i8 input comap array
+pub fn read_comap_fixed_array_i8(
+    key: &str,
+    return_slice: &mut [i8],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I8 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i8, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_i8(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i16 input comap array
+pub fn read_comap_fixed_array_i16(
+    key: &str,
+    return_slice: &mut [i16],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I16 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i16, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_i16(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i32 input comap array
+pub fn read_comap_fixed_array_i32(
+    key: &str,
+    return_slice: &mut [i32],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I32 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i32, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_i32(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i64 input comap array
+pub fn read_comap_fixed_array_i64(
+    key: &str,
+    return_slice: &mut [i64],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I64 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i64, "input_map") {
+        MATCH_VAL => pop_costack_fixed_array_i64(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+// read_result_comap_fixed_array_XXX(key, array slice)
+
+/// Attempt to read a u8 result comap array
+pub fn read_result_comap_fixed_array_u8(
+    key: &str,
+    return_slice: &mut [u8],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U8 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u8, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_u8(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u16 result comap array
+pub fn read_result_comap_fixed_array_u16(
+    key: &str,
+    return_slice: &mut [u16],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U16 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u16, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_u16(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u32 result comap array
+pub fn read_result_comap_fixed_array_u32(
+    key: &str,
+    return_slice: &mut [u32],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U32 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u32, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_u32(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a u64 result comap array
+pub fn read_result_comap_fixed_array_u64(
+    key: &str,
+    return_slice: &mut [u64],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_U64 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u64, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_u64(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i8 result comap array
+pub fn read_result_comap_fixed_array_i8(
+    key: &str,
+    return_slice: &mut [i8],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I8 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i8, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_i8(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i16 result comap array
+pub fn read_result_comap_fixed_array_i16(
+    key: &str,
+    return_slice: &mut [i16],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I16 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i16, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_i16(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i32 result comap array
+pub fn read_result_comap_fixed_array_i32(
+    key: &str,
+    return_slice: &mut [i32],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I32 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i32, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_i32(return_slice),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i64 result comap array
+pub fn read_result_comap_fixed_array_i64(
+    key: &str,
+    return_slice: &mut [i64],
+) -> Result<(), RecoverableError> {
+    const MATCH_VAL: u32 = ABI_VALUE_I64 + ABI_ARRAY_BIT;
+    match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i64, "result_map") {
+        MATCH_VAL => pop_costack_fixed_array_i64(return_slice),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
