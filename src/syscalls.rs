@@ -50,6 +50,14 @@ pub fn discard_costack() {
     }
 }
 
+/************************************
+**                                 **
+**  Costack abstraction functions  **
+**                                 **
+************************************/
+
+// pop_costack_XXX()
+
 macro_rules! pop_costack_typed {
     ($TYPE:tt) => {{
         const SIZE: usize = core::mem::size_of::<$TYPE>();
@@ -70,14 +78,9 @@ macro_rules! pop_costack_typed {
     }};
 }
 
-/// Pops an exact u64 value from the stack.
-pub fn pop_costack_u64() -> Result<u64, RecoverableError> {
-    pop_costack_typed!(u64)
-}
-
-/// Pops an exact u32 value from the stack.
-pub fn pop_costack_u32() -> Result<u32, RecoverableError> {
-    pop_costack_typed!(u32)
+/// Pops an exact u8 value from the stack.
+pub fn pop_costack_u8() -> Result<u8, RecoverableError> {
+    pop_costack_typed!(u8)
 }
 
 /// Pops an exact u16 value from the stack.
@@ -85,19 +88,19 @@ pub fn pop_costack_u16() -> Result<u16, RecoverableError> {
     pop_costack_typed!(u16)
 }
 
-/// Pops an exact u8 value from the stack.
-pub fn pop_costack_u8() -> Result<u8, RecoverableError> {
-    pop_costack_typed!(u8)
+/// Pops an exact u32 value from the stack.
+pub fn pop_costack_u32() -> Result<u32, RecoverableError> {
+    pop_costack_typed!(u32)
 }
 
-/// Pops an exact i64 value from the stack.
-pub fn pop_costack_i64() -> Result<i64, RecoverableError> {
-    pop_costack_typed!(i64)
+/// Pops an exact u64 value from the stack.
+pub fn pop_costack_u64() -> Result<u64, RecoverableError> {
+    pop_costack_typed!(u64)
 }
 
-/// Pops an exact i32 value from the stack.
-pub fn pop_costack_i32() -> Result<i32, RecoverableError> {
-    pop_costack_typed!(i32)
+/// Pops an exact i8 value from the stack.
+pub fn pop_costack_i8() -> Result<i8, RecoverableError> {
+    pop_costack_typed!(i8)
 }
 
 /// Pops an exact i16 value from the stack.
@@ -105,9 +108,14 @@ pub fn pop_costack_i16() -> Result<i16, RecoverableError> {
     pop_costack_typed!(i16)
 }
 
-/// Pops an exact i8 value from the stack.
-pub fn pop_costack_i8() -> Result<i8, RecoverableError> {
-    pop_costack_typed!(i8)
+/// Pops an exact i32 value from the stack.
+pub fn pop_costack_i32() -> Result<i32, RecoverableError> {
+    pop_costack_typed!(i32)
+}
+
+/// Pops an exact i64 value from the stack.
+pub fn pop_costack_i64() -> Result<i64, RecoverableError> {
+    pop_costack_typed!(i64)
 }
 
 /// Pops an exact NeutronAddress value from the stack.
@@ -129,14 +137,9 @@ macro_rules! push_costack_typed {
     }};
 }
 
-/// Push an exact u64 value to the stack.
-pub fn push_costack_u64(value: u64) {
-    push_costack_typed!(value, u64);
-}
-
-/// Push an exact u32 value to the stack.
-pub fn push_costack_u32(value: u32) {
-    push_costack_typed!(value, u32);
+/// Push an exact u8 value to the stack.
+pub fn push_costack_u8(value: u8) {
+    push_costack_typed!(value, u8);
 }
 
 /// Push an exact u16 value to the stack.
@@ -144,24 +147,14 @@ pub fn push_costack_u16(value: u16) {
     push_costack_typed!(value, u16);
 }
 
-/// Push an exact u8 value to the stack.
-pub fn push_costack_u8(value: u8) {
-    push_costack_typed!(value, u8);
+/// Push an exact u32 value to the stack.
+pub fn push_costack_u32(value: u32) {
+    push_costack_typed!(value, u32);
 }
 
-/// Push an exact i64 value to the stack.
-pub fn push_costack_i64(value: i64) {
-    push_costack_typed!(value, i64);
-}
-
-/// Push an exact i32 value to the stack.
-pub fn push_costack_i32(value: i32) {
-    push_costack_typed!(value, i32);
-}
-
-/// Push an exact i16 value to the stack.
-pub fn push_costack_i16(value: i16) {
-    push_costack_typed!(value, i16);
+/// Push an exact u64 value to the stack.
+pub fn push_costack_u64(value: u64) {
+    push_costack_typed!(value, u64);
 }
 
 /// Push an exact i8 value to the stack.
@@ -169,10 +162,34 @@ pub fn push_costack_i8(value: i8) {
     push_costack_typed!(value, i8);
 }
 
+/// Push an exact i16 value to the stack.
+pub fn push_costack_i16(value: i16) {
+    push_costack_typed!(value, i16);
+}
+
+/// Push an exact i32 value to the stack.
+pub fn push_costack_i32(value: i32) {
+    push_costack_typed!(value, i32);
+}
+
+/// Push an exact i64 value to the stack.
+pub fn push_costack_i64(value: i64) {
+    push_costack_typed!(value, i64);
+}
+
 /// Pushes an exact NeutronAddress to the stack.
 pub fn push_costack_address(value: &NeutronAddress) {
     push_costack_typed!(*value, NeutronAddress);
 }
+
+/*****************************************
+**                                      **
+**  Simple comap abstraction functions  **
+**                                      **
+*****************************************/
+
+// ABI value constants
+// TODO: Move to a more unified ABI helper library???
 
 // All these are 1 byte headers -> only top byte is used, as following:
 // Bits 7-6 are 0   -> 1 byte header
@@ -181,18 +198,19 @@ pub fn push_costack_address(value: &NeutronAddress) {
 // Bit 3 is 0       -> not array
 // Bits 2-0 determine the actual type
 
-// TODO: Move to a more unified ABI helper library???
-pub const ABI_VALUE_U8: u32 = 0b00000000;
-pub const ABI_VALUE_I8: u32 = 0b00000100;
-pub const ABI_VALUE_U16: u32 = 0b00000010;
-pub const ABI_VALUE_I16: u32 = 0b00000110;
-pub const ABI_VALUE_U32: u32 = 0b00000001;
-pub const ABI_VALUE_I32: u32 = 0b00000101;
-pub const ABI_VALUE_U64: u32 = 0b00000011;
-pub const ABI_VALUE_I64: u32 = 0b00000111;
+pub const ABI_VALUE_U8: u32 = 0b0000_0000;
+pub const ABI_VALUE_I8: u32 = 0b0000_0100;
+pub const ABI_VALUE_U16: u32 = 0b0000_0010;
+pub const ABI_VALUE_I16: u32 = 0b0000_0110;
+pub const ABI_VALUE_U32: u32 = 0b0000_0001;
+pub const ABI_VALUE_I32: u32 = 0b0000_0101;
+pub const ABI_VALUE_U64: u32 = 0b0000_0011;
+pub const ABI_VALUE_I64: u32 = 0b0000_0111;
 
-// OR above type value with this to set byte indicating array value
-//const ABI_ARRAY_BIT: u32    = 0b00001000 << 24;
+// OR (or add...) above type value with this to set byte indicating array value
+pub const ABI_ARRAY_BIT: u32 = 0b0000_1000;
+
+// write_comap_XXX(key, value)
 
 macro_rules! write_comap_typed_with_abi {
     ($KEY:ident, $VALUE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
@@ -204,14 +222,9 @@ macro_rules! write_comap_typed_with_abi {
     }};
 }
 
-/// Write a u64 comap value
-pub fn write_comap_u64(key: &str, value: u64) {
-    write_comap_typed_with_abi!(key, value, u64, ABI_VALUE_U64)
-}
-
-/// Write a u32 comap value
-pub fn write_comap_u32(key: &str, value: u32) {
-    write_comap_typed_with_abi!(key, value, u32, ABI_VALUE_U32)
+/// Write a u8 comap value
+pub fn write_comap_u8(key: &str, value: u8) {
+    write_comap_typed_with_abi!(key, value, u8, ABI_VALUE_U8)
 }
 
 /// Write a u16 comap value
@@ -219,19 +232,19 @@ pub fn write_comap_u16(key: &str, value: u16) {
     write_comap_typed_with_abi!(key, value, u16, ABI_VALUE_U16)
 }
 
-/// Write a u8 comap value
-pub fn write_comap_u8(key: &str, value: u8) {
-    write_comap_typed_with_abi!(key, value, u8, ABI_VALUE_U8)
+/// Write a u32 comap value
+pub fn write_comap_u32(key: &str, value: u32) {
+    write_comap_typed_with_abi!(key, value, u32, ABI_VALUE_U32)
 }
 
-/// Write a i64 comap value
-pub fn write_comap_i64(key: &str, value: i64) {
-    write_comap_typed_with_abi!(key, value, i64, ABI_VALUE_I64)
+/// Write a u64 comap value
+pub fn write_comap_u64(key: &str, value: u64) {
+    write_comap_typed_with_abi!(key, value, u64, ABI_VALUE_U64)
 }
 
-/// Write a i32 comap value
-pub fn write_comap_i32(key: &str, value: i32) {
-    write_comap_typed_with_abi!(key, value, i32, ABI_VALUE_I32)
+/// Write a i8 comap value
+pub fn write_comap_i8(key: &str, value: i8) {
+    write_comap_typed_with_abi!(key, value, i8, ABI_VALUE_I8)
 }
 
 /// Write a i16 comap value
@@ -239,10 +252,40 @@ pub fn write_comap_i16(key: &str, value: i16) {
     write_comap_typed_with_abi!(key, value, i16, ABI_VALUE_I16)
 }
 
-/// Write a i8 comap value
-pub fn write_comap_i8(key: &str, value: i8) {
-    write_comap_typed_with_abi!(key, value, i8, ABI_VALUE_I8)
+/// Write a i32 comap value
+pub fn write_comap_i32(key: &str, value: i32) {
+    write_comap_typed_with_abi!(key, value, i32, ABI_VALUE_I32)
 }
+
+/// Write a i64 comap value
+pub fn write_comap_i64(key: &str, value: i64) {
+    write_comap_typed_with_abi!(key, value, i64, ABI_VALUE_I64)
+}
+
+/// Write a NeutronAddress comap value
+pub fn write_comap_address(key: &str, value: NeutronAddress) {
+    write_comap_typed_with_abi!(key, value, NeutronAddress, ABI_VALUE_I8)
+}
+
+// write_comap_array_XXX(key, array slice)
+
+macro_rules! write_comap_array_typed_with_abi {
+    ($KEY:ident, $VALUE:ident, $TYPE:tt, $ABI_VALUE:expr) => {{
+        unsafe {
+            crate::println!("boo!");
+            push_costack($KEY.as_bytes());
+            push_costack_array_typed!($VALUE, $TYPE);
+            __push_comap($ABI_VALUE);
+        }
+    }};
+}
+
+/// Write a u64 comap array
+pub fn write_comap_array_u64(key: &str, value_slice: &[u64]) {
+    write_comap_array_typed_with_abi!(key, value_slice, u64, ABI_VALUE_U64 + ABI_ARRAY_BIT)
+}
+
+// read_comap_XXX(key)
 
 macro_rules! read_comap_typed_with_abi {
     ($KEY:ident, $TYPE:tt) => {{
@@ -255,18 +298,10 @@ macro_rules! read_comap_typed_with_abi {
     }};
 }
 
-/// Attempt to read a u64 comap value
-pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u64) {
-        ABI_VALUE_U64 => pop_costack_u64(),
-        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
-    }
-}
-
-/// Attempt to read a u32 comap value
-pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u32) {
-        ABI_VALUE_U32 => pop_costack_u32(),
+/// Attempt to read a u8 comap value
+pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u8) {
+        ABI_VALUE_U8 => pop_costack_u8(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
@@ -279,26 +314,26 @@ pub fn read_comap_u16(key: &str) -> Result<u16, RecoverableError> {
     }
 }
 
-/// Attempt to read a u8 comap value
-pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
-    match read_comap_typed_with_abi!(key, u8) {
-        ABI_VALUE_U8 => pop_costack_u8(),
+/// Attempt to read a u32 comap value
+pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u32) {
+        ABI_VALUE_U32 => pop_costack_u32(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i64 comap value
-pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i64) {
-        ABI_VALUE_I64 => pop_costack_i64(),
+/// Attempt to read a u64 comap value
+pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, u64) {
+        ABI_VALUE_U64 => pop_costack_u64(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
 
-/// Attempt to read a i32 comap value
-pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i32) {
-        ABI_VALUE_I32 => pop_costack_i32(),
+/// Attempt to read a i8 comap value
+pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i8) {
+        ABI_VALUE_I8 => pop_costack_i8(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
@@ -311,10 +346,18 @@ pub fn read_comap_i16(key: &str) -> Result<i16, RecoverableError> {
     }
 }
 
-/// Attempt to read a i8 comap value
-pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
-    match read_comap_typed_with_abi!(key, i8) {
-        ABI_VALUE_I8 => pop_costack_i8(),
+/// Attempt to read a i32 comap value
+pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i32) {
+        ABI_VALUE_I32 => pop_costack_i32(),
+        _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
+    }
+}
+
+/// Attempt to read a i64 comap value
+pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
+    match read_comap_typed_with_abi!(key, i64) {
+        ABI_VALUE_I64 => pop_costack_i64(),
         _ => Err(RecoverableError::ItemDoesntExist), // TODO: Custom neutron-star error
     }
 }
