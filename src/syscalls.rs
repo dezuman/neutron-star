@@ -80,47 +80,47 @@ macro_rules! pop_costack_typed {
     }};
 }
 
-/// Pops an exact u8 value from the stack.
+/// Pop an exact u8 value from the stack.
 pub fn pop_costack_u8() -> Result<u8, RecoverableError> {
     pop_costack_typed!(u8)
 }
 
-/// Pops an exact u16 value from the stack.
+/// Pop an exact u16 value from the stack.
 pub fn pop_costack_u16() -> Result<u16, RecoverableError> {
     pop_costack_typed!(u16)
 }
 
-/// Pops an exact u32 value from the stack.
+/// Pop an exact u32 value from the stack.
 pub fn pop_costack_u32() -> Result<u32, RecoverableError> {
     pop_costack_typed!(u32)
 }
 
-/// Pops an exact u64 value from the stack.
+/// Pop an exact u64 value from the stack.
 pub fn pop_costack_u64() -> Result<u64, RecoverableError> {
     pop_costack_typed!(u64)
 }
 
-/// Pops an exact i8 value from the stack.
+/// Pop an exact i8 value from the stack.
 pub fn pop_costack_i8() -> Result<i8, RecoverableError> {
     pop_costack_typed!(i8)
 }
 
-/// Pops an exact i16 value from the stack.
+/// Pop an exact i16 value from the stack.
 pub fn pop_costack_i16() -> Result<i16, RecoverableError> {
     pop_costack_typed!(i16)
 }
 
-/// Pops an exact i32 value from the stack.
+/// Pop an exact i32 value from the stack.
 pub fn pop_costack_i32() -> Result<i32, RecoverableError> {
     pop_costack_typed!(i32)
 }
 
-/// Pops an exact i64 value from the stack.
+/// Pop an exact i64 value from the stack.
 pub fn pop_costack_i64() -> Result<i64, RecoverableError> {
     pop_costack_typed!(i64)
 }
 
-/// Pops an exact NeutronAddress value from the stack.
+/// Pop an exact NeutronAddress value from the stack.
 pub fn pop_costack_address() -> Result<NeutronAddress, RecoverableError> {
     pop_costack_typed!(NeutronAddress)
 }
@@ -136,64 +136,63 @@ macro_rules! pop_costack_fixed_array_typed {
         let pointer = &mut$SLICE[0] as *mut $TYPE as *mut u8;
         let byte_slice = unsafe { slice::from_raw_parts_mut(pointer, $SLICE.len() * SIZE) };
 
-        let result = match pop_costack_fixed(byte_slice) {
+        let actual_length = match pop_costack_fixed(byte_slice) {
             Ok(v) => v,
             Err(_e) => return Err(RecoverableError::ItemDoesntExist),
         };
 
-        // For these functions we only allow the exact expected byte count
-        if result > ($SLICE.len() * SIZE) as u32 {
-            return Err(RecoverableError::StackItemTooLarge);
-        } else if result < ($SLICE.len() * SIZE) as u32 {
-            return Err(RecoverableError::StackItemTooSmall);
+        // Data has to be aligned to size of data type
+        if actual_length % (SIZE as u32) != 0 {
+            return Err(RecoverableError::StackItemTooLarge); // TODO: Replace with neutron-star error
         }
 
-        return Ok(());
+        // Return length in given type (actual_length is length in bytes)
+        return Ok(actual_length / (SIZE as u32));
     }};
 }
 
-/// Pops a fixed size u8 array from the stack.
-pub fn pop_costack_fixed_array_u8(slice: &mut [u8]) -> Result<(), RecoverableError> {
+/// Pop a u8 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_u8(slice: &mut [u8]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, u8)
 }
 
-/// Pops a fixed size u16 array from the stack.
-pub fn pop_costack_fixed_array_u16(slice: &mut [u16]) -> Result<(), RecoverableError> {
+/// Pop a u16 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_u16(slice: &mut [u16]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, u16)
 }
 
-/// Pops a fixed size u32 array from the stack.
-pub fn pop_costack_fixed_array_u32(slice: &mut [u32]) -> Result<(), RecoverableError> {
+/// Pop a u32 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_u32(slice: &mut [u32]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, u32)
 }
 
-/// Pops a fixed size u64 array from the stack.
-pub fn pop_costack_fixed_array_u64(slice: &mut [u64]) -> Result<(), RecoverableError> {
+/// Pop a u64 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_u64(slice: &mut [u64]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, u64)
 }
 
-/// Pops a fixed size i8 array from the stack.
-pub fn pop_costack_fixed_array_i8(slice: &mut [i8]) -> Result<(), RecoverableError> {
+/// Pop a i8 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_i8(slice: &mut [i8]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, i8)
 }
 
-/// Pops a fixed size i16 array from the stack.
-pub fn pop_costack_fixed_array_i16(slice: &mut [i16]) -> Result<(), RecoverableError> {
+/// Pop a i16 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_i16(slice: &mut [i16]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, i16)
 }
 
-/// Pops a fixed size i32 array from the stack.
-pub fn pop_costack_fixed_array_i32(slice: &mut [i32]) -> Result<(), RecoverableError> {
+/// Pop a i32 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_i32(slice: &mut [i32]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, i32)
 }
 
-/// Pops a fixed size i64 array from the stack.
-pub fn pop_costack_fixed_array_i64(slice: &mut [i64]) -> Result<(), RecoverableError> {
+/// Pop a i64 array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_i64(slice: &mut [i64]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, i64)
 }
 
-/// Pops a fixed size NeutronAddress array from the stack.
-pub fn pop_costack_fixed_array_address(slice: &mut [NeutronAddress]) -> Result<(), RecoverableError> {
+/// Pop a NeutronAddress array from the stack into provided slice, discard overflow, and return actual size of popped array.
+pub fn pop_costack_fixed_array_address(slice: &mut [NeutronAddress]) -> Result<u32, RecoverableError> {
     pop_costack_fixed_array_typed!(slice, NeutronAddress)
 }
 
@@ -253,7 +252,7 @@ pub fn push_costack_i64(value: i64) {
     push_costack_typed!(value, i64);
 }
 
-/// Pushes an exact NeutronAddress to the stack.
+/// Push an exact NeutronAddress to the stack.
 pub fn push_costack_address(value: &NeutronAddress) {
     push_costack_typed!(*value, NeutronAddress);
 }
@@ -271,47 +270,47 @@ macro_rules! push_costack_array_typed {
     }};
 }
 
-/// Pushes an u8 array to the stack.
+/// Push a u8 array to the stack.
 pub fn push_costack_array_u8(value: &[u8]) {
     push_costack(value); // No need for the macro since the slice is already byte sized
 }
 
-/// Pushes an u16 array to the stack.
+/// Push a u16 array to the stack.
 pub fn push_costack_array_u16(value: &[u16]) {
     push_costack_array_typed!(value, u16);
 }
 
-/// Pushes an u32 array to the stack.
+/// Push a u32 array to the stack.
 pub fn push_costack_array_u32(value: &[u32]) {
     push_costack_array_typed!(value, u32);
 }
 
-/// Pushes an u64 array to the stack.
+/// Push a u64 array to the stack.
 pub fn push_costack_array_u64(value: &[u64]) {
     push_costack_array_typed!(value, u64);
 }
 
-/// Pushes an i8 array to the stack.
+/// Push a i8 array to the stack.
 pub fn push_costack_array_i8(value: &[i8]) {
     push_costack_array_typed!(value, i8);
 }
 
-/// Pushes an i16 array to the stack.
+/// Push a i16 array to the stack.
 pub fn push_costack_array_i16(value: &[i16]) {
     push_costack_array_typed!(value, i16);
 }
 
-/// Pushes an i32 array to the stack.
+/// Push a i32 array to the stack.
 pub fn push_costack_array_i32(value: &[i32]) {
     push_costack_array_typed!(value, i32);
 }
 
-/// Pushes an i64 array to the stack.
+/// Push a i64 array to the stack.
 pub fn push_costack_array_i64(value: &[i64]) {
     push_costack_array_typed!(value, i64);
 }
 
-/// Pushes a NeutronAddress array to the stack.
+/// Push a NeutronAddress array to the stack.
 pub fn push_costack_array_address(value: &[NeutronAddress]) {
     push_costack_array_typed!(value, NeutronAddress);
 }
@@ -475,7 +474,7 @@ macro_rules! read_comap_typed_with_abi {
     }};
 }
 
-/// Attempt to read a u8 input comap value
+/// Read a u8 input comap value
 pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
     match read_comap_typed_with_abi!(key, u8, "input_map") {
         ABI_VALUE_U8 => pop_costack_u8(),
@@ -483,7 +482,7 @@ pub fn read_comap_u8(key: &str) -> Result<u8, RecoverableError> {
     }
 }
 
-/// Attempt to read a u16 input comap value
+/// Read a u16 input comap value
 pub fn read_comap_u16(key: &str) -> Result<u16, RecoverableError> {
     match read_comap_typed_with_abi!(key, u16, "input_map") {
         ABI_VALUE_U16 => pop_costack_u16(),
@@ -491,7 +490,7 @@ pub fn read_comap_u16(key: &str) -> Result<u16, RecoverableError> {
     }
 }
 
-/// Attempt to read a u32 input comap value
+/// Read a u32 input comap value
 pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
     match read_comap_typed_with_abi!(key, u32, "input_map") {
         ABI_VALUE_U32 => pop_costack_u32(),
@@ -499,7 +498,7 @@ pub fn read_comap_u32(key: &str) -> Result<u32, RecoverableError> {
     }
 }
 
-/// Attempt to read a u64 input comap value
+/// Read a u64 input comap value
 pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
     match read_comap_typed_with_abi!(key, u64, "input_map") {
         ABI_VALUE_U64 => pop_costack_u64(),
@@ -507,7 +506,7 @@ pub fn read_comap_u64(key: &str) -> Result<u64, RecoverableError> {
     }
 }
 
-/// Attempt to read a i8 input comap value
+/// Read a i8 input comap value
 pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
     match read_comap_typed_with_abi!(key, i8, "input_map") {
         ABI_VALUE_I8 => pop_costack_i8(),
@@ -515,7 +514,7 @@ pub fn read_comap_i8(key: &str) -> Result<i8, RecoverableError> {
     }
 }
 
-/// Attempt to read a i16 input comap value
+/// Read a i16 input comap value
 pub fn read_comap_i16(key: &str) -> Result<i16, RecoverableError> {
     match read_comap_typed_with_abi!(key, i16, "input_map") {
         ABI_VALUE_I16 => pop_costack_i16(),
@@ -523,7 +522,7 @@ pub fn read_comap_i16(key: &str) -> Result<i16, RecoverableError> {
     }
 }
 
-/// Attempt to read a i32 input comap value
+/// Read a i32 input comap value
 pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
     match read_comap_typed_with_abi!(key, i32, "input_map") {
         ABI_VALUE_I32 => pop_costack_i32(),
@@ -531,7 +530,7 @@ pub fn read_comap_i32(key: &str) -> Result<i32, RecoverableError> {
     }
 }
 
-/// Attempt to read a i64 input comap value
+/// Read a i64 input comap value
 pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
     match read_comap_typed_with_abi!(key, i64, "input_map") {
         ABI_VALUE_I64 => pop_costack_i64(),
@@ -541,7 +540,7 @@ pub fn read_comap_i64(key: &str) -> Result<i64, RecoverableError> {
 
 // read_result_comap_XXX
 
-/// Attempt to read a u8 result comap value
+/// Read a u8 result comap value
 pub fn read_result_comap_u8(key: &str) -> Result<u8, RecoverableError> {
     match read_comap_typed_with_abi!(key, u8, "result_map") {
         ABI_VALUE_U8 => pop_costack_u8(),
@@ -549,7 +548,7 @@ pub fn read_result_comap_u8(key: &str) -> Result<u8, RecoverableError> {
     }
 }
 
-/// Attempt to read a u16 result comap value
+/// Read a u16 result comap value
 pub fn read_result_comap_u16(key: &str) -> Result<u16, RecoverableError> {
     match read_comap_typed_with_abi!(key, u16, "result_map") {
         ABI_VALUE_U16 => pop_costack_u16(),
@@ -557,7 +556,7 @@ pub fn read_result_comap_u16(key: &str) -> Result<u16, RecoverableError> {
     }
 }
 
-/// Attempt to read a u32 result comap value
+/// Read a u32 result comap value
 pub fn read_result_comap_u32(key: &str) -> Result<u32, RecoverableError> {
     match read_comap_typed_with_abi!(key, u32, "result_map") {
         ABI_VALUE_U32 => pop_costack_u32(),
@@ -565,7 +564,7 @@ pub fn read_result_comap_u32(key: &str) -> Result<u32, RecoverableError> {
     }
 }
 
-/// Attempt to read a u64 result comap value
+/// Read a u64 result comap value
 pub fn read_result_comap_u64(key: &str) -> Result<u64, RecoverableError> {
     match read_comap_typed_with_abi!(key, u64, "result_map") {
         ABI_VALUE_U64 => pop_costack_u64(),
@@ -573,7 +572,7 @@ pub fn read_result_comap_u64(key: &str) -> Result<u64, RecoverableError> {
     }
 }
 
-/// Attempt to read a i8 result comap value
+/// Read a i8 result comap value
 pub fn read_result_comap_i8(key: &str) -> Result<i8, RecoverableError> {
     match read_comap_typed_with_abi!(key, i8, "result_map") {
         ABI_VALUE_I8 => pop_costack_i8(),
@@ -581,7 +580,7 @@ pub fn read_result_comap_i8(key: &str) -> Result<i8, RecoverableError> {
     }
 }
 
-/// Attempt to read a i16 result comap value
+/// Read a i16 result comap value
 pub fn read_result_comap_i16(key: &str) -> Result<i16, RecoverableError> {
     match read_comap_typed_with_abi!(key, i16, "result_map") {
         ABI_VALUE_I16 => pop_costack_i16(),
@@ -589,7 +588,7 @@ pub fn read_result_comap_i16(key: &str) -> Result<i16, RecoverableError> {
     }
 }
 
-/// Attempt to read a i32 result comap value
+/// Read a i32 result comap value
 pub fn read_result_comap_i32(key: &str) -> Result<i32, RecoverableError> {
     match read_comap_typed_with_abi!(key, i32, "result_map") {
         ABI_VALUE_I32 => pop_costack_i32(),
@@ -597,7 +596,7 @@ pub fn read_result_comap_i32(key: &str) -> Result<i32, RecoverableError> {
     }
 }
 
-/// Attempt to read a i64 result comap value
+/// Read a i64 result comap value
 pub fn read_result_comap_i64(key: &str) -> Result<i64, RecoverableError> {
     match read_comap_typed_with_abi!(key, i64, "result_map") {
         ABI_VALUE_I64 => pop_costack_i64(),
@@ -626,8 +625,8 @@ macro_rules! read_comap_fixed_array_typed_with_abi {
     }};
 }
 
-/// Attempt to read a u8 input comap array
-pub fn read_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> Result<(), RecoverableError> {
+/// Read a u8 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U8 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u8, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_u8(return_slice),
@@ -635,8 +634,8 @@ pub fn read_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> Result<(
     }
 }
 
-/// Attempt to read a u16 input comap array
-pub fn read_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) -> Result<(), RecoverableError> {
+/// Read a u16 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U16 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u16, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_u16(return_slice),
@@ -644,8 +643,8 @@ pub fn read_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) -> Result
     }
 }
 
-/// Attempt to read a u32 input comap array
-pub fn read_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) -> Result<(), RecoverableError> {
+/// Read a u32 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U32 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u32, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_u32(return_slice),
@@ -653,8 +652,8 @@ pub fn read_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) -> Result
     }
 }
 
-/// Attempt to read a u64 input comap array
-pub fn read_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) -> Result<(), RecoverableError> {
+/// Read a u64 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U64 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u64, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_u64(return_slice),
@@ -662,8 +661,8 @@ pub fn read_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) -> Result
     }
 }
 
-/// Attempt to read a i8 input comap array
-pub fn read_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> Result<(), RecoverableError> {
+/// Read a i8 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I8 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i8, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_i8(return_slice),
@@ -671,8 +670,8 @@ pub fn read_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> Result<(
     }
 }
 
-/// Attempt to read a i16 input comap array
-pub fn read_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) -> Result<(), RecoverableError> {
+/// Read a i16 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I16 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i16, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_i16(return_slice),
@@ -680,8 +679,8 @@ pub fn read_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) -> Result
     }
 }
 
-/// Attempt to read a i32 input comap array
-pub fn read_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) -> Result<(), RecoverableError> {
+/// Read a i32 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I32 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i32, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_i32(return_slice),
@@ -689,8 +688,8 @@ pub fn read_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) -> Result
     }
 }
 
-/// Attempt to read a i64 input comap array
-pub fn read_comap_fixed_array_i64(key: &str, return_slice: &mut [i64]) -> Result<(), RecoverableError> {
+/// Read a i64 array from the input comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_comap_fixed_array_i64(key: &str, return_slice: &mut [i64]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I64 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i64, "input_map") {
         MATCH_VAL => pop_costack_fixed_array_i64(return_slice),
@@ -700,8 +699,8 @@ pub fn read_comap_fixed_array_i64(key: &str, return_slice: &mut [i64]) -> Result
 
 // read_result_comap_fixed_array_XXX(key, array slice)
 
-/// Attempt to read a u8 result comap array
-pub fn read_result_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> Result<(), RecoverableError> {
+/// Read a u8 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U8 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u8, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_u8(return_slice),
@@ -709,8 +708,8 @@ pub fn read_result_comap_fixed_array_u8(key: &str, return_slice: &mut [u8]) -> R
     }
 }
 
-/// Attempt to read a u16 result comap array
-pub fn read_result_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) -> Result<(), RecoverableError> {
+/// Read a u16 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U16 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u16, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_u16(return_slice),
@@ -718,8 +717,8 @@ pub fn read_result_comap_fixed_array_u16(key: &str, return_slice: &mut [u16]) ->
     }
 }
 
-/// Attempt to read a u32 result comap array
-pub fn read_result_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) -> Result<(), RecoverableError> {
+/// Read a u32 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U32 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u32, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_u32(return_slice),
@@ -727,8 +726,8 @@ pub fn read_result_comap_fixed_array_u32(key: &str, return_slice: &mut [u32]) ->
     }
 }
 
-/// Attempt to read a u64 result comap array
-pub fn read_result_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) -> Result<(), RecoverableError> {
+/// Read a u64 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_U64 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), u64, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_u64(return_slice),
@@ -736,8 +735,8 @@ pub fn read_result_comap_fixed_array_u64(key: &str, return_slice: &mut [u64]) ->
     }
 }
 
-/// Attempt to read a i8 result comap array
-pub fn read_result_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> Result<(), RecoverableError> {
+/// Read a i8 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I8 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i8, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_i8(return_slice),
@@ -745,8 +744,8 @@ pub fn read_result_comap_fixed_array_i8(key: &str, return_slice: &mut [i8]) -> R
     }
 }
 
-/// Attempt to read a i16 result comap array
-pub fn read_result_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) -> Result<(), RecoverableError> {
+/// Read a i16 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I16 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i16, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_i16(return_slice),
@@ -754,8 +753,8 @@ pub fn read_result_comap_fixed_array_i16(key: &str, return_slice: &mut [i16]) ->
     }
 }
 
-/// Attempt to read a i32 result comap array
-pub fn read_result_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) -> Result<(), RecoverableError> {
+/// Read a i32 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I32 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i32, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_i32(return_slice),
@@ -763,8 +762,8 @@ pub fn read_result_comap_fixed_array_i32(key: &str, return_slice: &mut [i32]) ->
     }
 }
 
-/// Attempt to read a i64 result comap array
-pub fn read_result_comap_fixed_array_i64(key: &str, return_slice: &mut [i64]) -> Result<(), RecoverableError> {
+/// Read a i64 array from the result comap into provided slice, discard overflow, and return actual size of array.
+pub fn read_result_comap_fixed_array_i64(key: &str, return_slice: &mut [i64]) -> Result<u32, RecoverableError> {
     const MATCH_VAL: u32 = ABI_VALUE_I64 + ABI_ARRAY_BIT;
     match read_comap_fixed_array_typed_with_abi!(key, return_slice.len(), i64, "result_map") {
         MATCH_VAL => pop_costack_fixed_array_i64(return_slice),
