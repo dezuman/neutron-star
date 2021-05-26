@@ -62,21 +62,21 @@ pub fn discard_costack() {
 
 macro_rules! pop_costack_typed {
     ($TYPE:tt) => {{
-        const SIZE: usize = core::mem::size_of::<$TYPE>();
-        let mut buffer = [0; SIZE];
-        let result = match pop_costack_fixed(&mut buffer) {
+        const TYPE_SIZE: usize = core::mem::size_of::<$TYPE>();
+        let mut buffer = [0; TYPE_SIZE];
+        let actual_size = match pop_costack_fixed(&mut buffer) {
             Ok(v) => v,
             Err(_e) => return Err(RecoverableError::ItemDoesntExist),
         };
 
         // For these functions we only allow the exact expected byte count
-        if result > SIZE as u32 {
+        if actual_size > TYPE_SIZE as u32 {
             return Err(RecoverableError::StackItemTooLarge);
-        } else if result < SIZE as u32 {
+        } else if actual_size < TYPE_SIZE as u32 {
             return Err(RecoverableError::StackItemTooSmall);
         }
 
-        Ok(unsafe { transmute::<[u8; SIZE], $TYPE>(buffer) })
+        Ok(unsafe { transmute::<[u8; TYPE_SIZE], $TYPE>(buffer) })
     }};
 }
 
@@ -131,23 +131,23 @@ pub fn pop_costack_address() -> Result<NeutronAddress, RecoverableError> {
 // It basically casts a slice of a numeric array to a byte slice, then pops a costack value into it.
 macro_rules! pop_costack_fixed_array_typed {
     ($SLICE:ident, $TYPE:tt) => {{
-        const SIZE: usize = core::mem::size_of::<$TYPE>();
+        const TYPE_SIZE: usize = core::mem::size_of::<$TYPE>();
 
         let pointer = &mut$SLICE[0] as *mut $TYPE as *mut u8;
-        let byte_slice = unsafe { slice::from_raw_parts_mut(pointer, $SLICE.len() * SIZE) };
+        let byte_slice = unsafe { slice::from_raw_parts_mut(pointer, $SLICE.len() * TYPE_SIZE) };
 
-        let actual_length = match pop_costack_fixed(byte_slice) {
+        let actual_size = match pop_costack_fixed(byte_slice) {
             Ok(v) => v,
             Err(_e) => return Err(RecoverableError::ItemDoesntExist),
         };
 
         // Data has to be aligned to size of data type
-        if actual_length % (SIZE as u32) != 0 {
+        if actual_size % (TYPE_SIZE as u32) != 0 {
             return Err(RecoverableError::StackItemTooLarge); // TODO: Replace with neutron-star error
         }
 
-        // Return length in given type (actual_length is length in bytes)
-        return Ok(actual_length / (SIZE as u32));
+        // Return length in given type (actual_size is length in bytes)
+        return Ok(actual_size / (TYPE_SIZE as u32));
     }};
 }
 
@@ -200,14 +200,14 @@ pub fn pop_costack_fixed_array_address(slice: &mut [NeutronAddress]) -> Result<u
 
 macro_rules! push_costack_typed {
     ($VALUE:ident, $TYPE:tt) => {{
-        const SIZE: usize = core::mem::size_of::<$TYPE>();
-        let bytes = unsafe { transmute::<$TYPE, [u8; SIZE]>($VALUE) };
+        const TYPE_SIZE: usize = core::mem::size_of::<$TYPE>();
+        let bytes = unsafe { transmute::<$TYPE, [u8; TYPE_SIZE]>($VALUE) };
         push_costack(&bytes);
     }};
     // Handle reference-type parameters (Only NeutronAddress currently)
     (*$VALUE:ident, $TYPE:tt) => {{
-        const SIZE: usize = core::mem::size_of::<$TYPE>();
-        let bytes = unsafe { transmute::<$TYPE, [u8; SIZE]>(*$VALUE) };
+        const TYPE_SIZE: usize = core::mem::size_of::<$TYPE>();
+        let bytes = unsafe { transmute::<$TYPE, [u8; TYPE_SIZE]>(*$VALUE) };
         push_costack(&bytes);
     }};
 }
@@ -261,10 +261,10 @@ pub fn push_costack_address(value: &NeutronAddress) {
 
 macro_rules! push_costack_array_typed {
     ($SLICE:ident, $TYPE:tt) => {{
-        const SIZE: usize = core::mem::size_of::<$TYPE>();
+        const TYPE_SIZE: usize = core::mem::size_of::<$TYPE>();
 
         let pointer = &$SLICE[0] as *const $TYPE as *const u8;
-        let byte_slice = unsafe { slice::from_raw_parts(pointer, $SLICE.len() * SIZE) };
+        let byte_slice = unsafe { slice::from_raw_parts(pointer, $SLICE.len() * TYPE_SIZE) };
 
         push_costack(byte_slice);
     }};
@@ -460,16 +460,16 @@ macro_rules! read_comap_typed_with_abi {
         unsafe {
             push_costack($KEY.as_bytes());
             const BEGIN: usize = 0;
-            const SIZE: usize = core::mem::size_of::<$TYPE>();
-            __peek_comap(BEGIN, SIZE)
+            const MAX_LENGTH: usize = core::mem::size_of::<$TYPE>();
+            __peek_comap(BEGIN, MAX_LENGTH)
         }
     }};
     ($KEY:ident, $TYPE:tt, "result_map") => {{
         unsafe {
             push_costack($KEY.as_bytes());
             const BEGIN: usize = 0;
-            const SIZE: usize = core::mem::size_of::<$TYPE>();
-            __peek_result_comap(BEGIN, SIZE)
+            const MAX_LENGTH: usize = core::mem::size_of::<$TYPE>();
+            __peek_result_comap(BEGIN, MAX_LENGTH)
         }
     }};
 }
@@ -605,22 +605,25 @@ pub fn read_result_comap_i64(key: &str) -> Result<i64, RecoverableError> {
 }
 
 // read_comap_fixed_array_XXX(key, array slice)
+// Note: Reads all data in the comap entry, size constraints are handled when popping it from the costack
 
 macro_rules! read_comap_fixed_array_typed_with_abi {
     ($KEY:ident, $SLICE_LENGTH:expr, $TYPE:tt, "input_map") => {{
         unsafe {
             push_costack($KEY.as_bytes());
             const BEGIN: usize = 0;
-            const SIZE: usize = core::mem::size_of::<$TYPE>();
-            __peek_comap(BEGIN, $SLICE_LENGTH * SIZE)
+            const MAX_LENGTH: usize = 0;
+
+            __peek_comap(BEGIN, MAX_LENGTH)
         }
     }};
     ($KEY:ident, $SLICE_LENGTH:expr, $TYPE:tt, "result_map") => {{
         unsafe {
             push_costack($KEY.as_bytes());
             const BEGIN: usize = 0;
-            const SIZE: usize = core::mem::size_of::<$TYPE>();
-            __peek_result_comap(BEGIN, $SLICE_LENGTH * SIZE)
+            const MAX_LENGTH: usize = 0xFFFF_FFFF;
+
+            __peek_result_comap(BEGIN, MAX_LENGTH)
         }
     }};
 }
